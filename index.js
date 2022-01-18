@@ -37,8 +37,8 @@ server.get('/merge', async (req, res) => {
     const { filename } = req.query
     try {
         let len = 0
-        const bufferList = fs.readdirSync(`${STATIC_TEMPORARY}/${filename}`).map(hash => {
-            const buffer = fs.readFileSync(`${STATIC_TEMPORARY}/${filename}/${hash}`)
+        const bufferList = fs.readdirSync(`${STATIC_TEMPORARY}/${filename}`).map((hash, index) => {
+            const buffer = fs.readFileSync(`${STATIC_TEMPORARY}/${filename}/${index}`)
             len += buffer.length
             return buffer
         });
