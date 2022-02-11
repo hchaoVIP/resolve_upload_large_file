@@ -3,14 +3,14 @@ const multiparty = require('multiparty')
 const fs = require('fs')
 const path = require('path')
 const { Buffer } = require('buffer')
-// 上传文件最终路径
+// file path
 const STATIC_FILES = path.join(__dirname, './static/files')
-// 上传文件临时路径
+// Temporary path to upload files
 const STATIC_TEMPORARY = path.join(__dirname, './static/temporary')
 const server = express()
-// 静态文件托管
+// Static file hosting
 server.use(express.static(path.join(__dirname, './dist')))
-// 切片上传的接口
+// Interface for uploading slices
 server.post('/upload', (req, res) => {
     const form = new multiparty.Form();
     form.parse(req, function(err, fields, files) {
@@ -25,29 +25,29 @@ server.post('/upload', (req, res) => {
             const ws = fs.createWriteStream(`${dir}/${hash}`)
             ws.write(buffer)
             ws.close()
-            res.send(`${filename}-${hash} 切片上传成功`)
+            res.send(`${filename}-${hash} Section uploaded successfully`)
         } catch (error) {
             console.error(error)
-            res.status(500).send(`${filename}-${hash} 切片上传失败`)
+            res.status(500).send(`${filename}-${hash} Section uploading failed`)
         }
     })
 })
-//合并切片接口
+//Merged slice interface
 server.get('/merge', async (req, res) => {
     const { filename } = req.query
     try {
         let len = 0
-        const bufferList = fs.readdirSync(`${STATIC_TEMPORARY}/${filename}`).map((hash, index) => {
+        const bufferList = fs.readdirSync(`${STATIC_TEMPORARY}/${filename}`).map((hash,index) => {
             const buffer = fs.readFileSync(`${STATIC_TEMPORARY}/${filename}/${index}`)
             len += buffer.length
             return buffer
         });
-        //合并文件
+        //Merge files
         const buffer = Buffer.concat(bufferList, len);
         const ws = fs.createWriteStream(`${STATIC_FILES}/${filename}`)
         ws.write(buffer);
         ws.close();
-        res.send(`切片合并完成`);
+        res.send(`Section merge completed`);
     } catch (error) {
         console.error(error);
     }

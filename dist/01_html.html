@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=s, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="https://cdn.bootcdn.net/ajax/libs/axios/0.24.0/axios.min.js"></script>
+  </head>
+  <body>
+    <input type="file" id="fileInput" />
+    <button id="uploadBtn">upload1</button>
+  </body>
+  <script>
+    // Address of the interface
+    axios.defaults.baseURL = "http://localhost:3000";
+    // Selected file
+    var file = null;
+    // Select the file
+    document.getElementById("fileInput").onchange = function ({
+      target: { files },
+    }) {
+      file = files[0];
+    };
+    // To upload
+    document.getElementById("uploadBtn").onclick = async function () {
+      if (!file) return;
+      // Create a slice
+
+      let size = 1024 * 50; //50KB 50KB Section size
+      let fileChunks = [];
+      let index = 0; //Section num
+      for (let cur = 0; cur < file.size; cur += size) {
+        fileChunks.push({
+          hash: index++,
+          chunk: file.slice(cur, cur + size),
+        });
+      }
+      // To upload
+      const uploadList = fileChunks.map((item, index) => {
+        let formData = new FormData();
+        formData.append("filename", file.name);
+        formData.append("hash", item.hash);
+        formData.append("chunk", item.chunk);
+        return axios({
+          method: "post",
+          url: "/upload",
+          data: formData,
+        });
+      });
+      await Promise.all(uploadList);
+      // All tasks complete, merge slices
+      await axios({
+        method: "get",
+        url: "/merge",
+        params: {
+          filename: file.name,
+        },
+      });
+      console.log("Upload to complete");
+    };
+  </script>
+</html>
